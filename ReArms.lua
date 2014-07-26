@@ -13,9 +13,13 @@ local ReArms = {}
 -----------------------------------------------------------------------------------------------
 -- Constants
 -----------------------------------------------------------------------------------------------
--- e.g. local kiExampleVariableMax = 999
- 
------------------------------------------------------------------------------------------------
+local LocWpnName = {
+	enUS = "(%S+)'s Weapon",
+	deDE = "Waffe von (%S+)",
+	frFR = "Arme de (%S+)",
+}
+
+---------------------------------------------------------------------------------------------
 -- Initialization
 -----------------------------------------------------------------------------------------------
 function ReArms:new(o)
@@ -24,6 +28,9 @@ function ReArms:new(o)
     self.__index = self 
 
     -- initialize variables here
+
+
+	-- TODO : Detect local and get weapon name
 
     return o
 end
@@ -45,25 +52,10 @@ function ReArms:OnLoad()
     -- load our form file
 	self.xmlDoc = XmlDoc.CreateFromFile("ReArms.xml")
 	self.xmlDoc:RegisterCallback("OnDocLoaded", self)
-	
-	-- Apollo.RegisterEventHandler("CombatLogDamage", "OnDamageDealt", self)
-	
-	Apollo.RegisterTimerHandler("ReArms_BuffTimer", "OnUpdate", self)
-	Apollo.CreateTimer("ReArms_BuffTimer", 0.1, true)
-	
-	Print("ReArms loaded")
+		
+	Apollo.CreateTimer("ReArms_BuffTimer", 0.1, true)	
+	Apollo.RegisterEventHandler("UnitCreated", "OnUnitCreated", self)	
 end
-
-
-function ReArms:OnUpdate()
-	local unitPlayer = GameLib.GetPlayerUnit()
-	local buffs = unitPlayer:GetBuffs()
-	
-	for idx, buff in pairs(buffs.arHarmful) do
-		Print(buff.splEffect:GetName())
-	end
-end
-
 
 -----------------------------------------------------------------------------------------------
 -- ReArms OnDocLoaded
@@ -87,7 +79,6 @@ function ReArms:OnDocLoaded()
 		Apollo.RegisterSlashCommand("ra", "OnReArmsOn", self)
 
 
-		-- Do additional Addon initialization here
 	end
 end
 
@@ -101,6 +92,14 @@ function ReArms:OnReArmsOn()
 	self.wndMain:Invoke() -- show the window
 end
 
+function ReArms:OnUnitCreated(unit)
+	if unit:GetType() == "Pickup" then
+		local playerName = GameLib.GetPlayerUnit():GetName();
+		if not string.find(unit:GetName(), playerName) then
+			Print("FOUND ARM")	
+		end
+	end
+end
 
 -----------------------------------------------------------------------------------------------
 -- ReArmsForm Functions
