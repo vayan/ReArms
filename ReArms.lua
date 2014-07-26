@@ -52,6 +52,8 @@ function ReArms:OnLoad()
     -- load our form file
 	self.xmlDoc = XmlDoc.CreateFromFile("ReArms.xml")
 	self.xmlDoc:RegisterCallback("OnDocLoaded", self)
+	
+	Apollo.LoadSprites("ArmIcon.xml", "ArmIcon")
 		
 	Apollo.CreateTimer("ReArms_BuffTimer", 0.1, true)	
 	Apollo.RegisterEventHandler("UnitCreated", "OnUnitCreated", self)	
@@ -76,8 +78,7 @@ function ReArms:OnDocLoaded()
 		
 		-- Register handlers for events, slash commands and timer, etc.
 		-- e.g. Apollo.RegisterEventHandler("KeyDown", "OnKeyDown", self)
-		Apollo.RegisterSlashCommand("ra", "OnReArmsOn", self)
-
+		-- Apollo.RegisterSlashCommand("ra", "OnReArmsOn", self)
 
 	end
 end
@@ -93,27 +94,15 @@ function ReArms:OnReArmsOn()
 end
 
 function ReArms:OnUnitCreated(unit)
-	if unit:GetType() == "Pickup" then
+	-- if unit:GetType() == "Pickup" then
 		local playerName = GameLib.GetPlayerUnit():GetName();
-		if not string.find(unit:GetName(), playerName) then
+		-- if not string.find(unit:GetName(), playerName) then
+		if not string.find(unit:GetName(), "bot") then
 			Print("FOUND ARM")	
+			self.wndMain:Show(true, true)
 		end
-	end
+	-- end
 end
-
------------------------------------------------------------------------------------------------
--- ReArmsForm Functions
------------------------------------------------------------------------------------------------
--- when the OK button is clicked
-function ReArms:OnOK()
-	self.wndMain:Close() -- hide the window
-end
-
--- when the Cancel button is clicked
-function ReArms:OnCancel()
-	self.wndMain:Close() -- hide the window
-end
-
 
 -----------------------------------------------------------------------------------------------
 -- ReArms Instance
