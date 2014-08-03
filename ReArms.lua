@@ -53,10 +53,10 @@ function ReArms:OnLoad()
 	self.xmlDoc = XmlDoc.CreateFromFile("ReArms.xml")
 	self.xmlDoc:RegisterCallback("OnDocLoaded", self)
 	
-	Apollo.LoadSprites("ArmIcon.xml", "ArmIcon")
+	-- Apollo.LoadSprites("ArmIcon.xml", "ArmIcon")
 		
 	Apollo.CreateTimer("ReArms_BuffTimer", 0.1, true)	
-	Apollo.RegisterEventHandler("UnitCreated", "OnUnitCreated", self)	
+	
 end
 
 -----------------------------------------------------------------------------------------------
@@ -65,13 +65,17 @@ end
 function ReArms:OnDocLoaded()
 
 	if self.xmlDoc ~= nil and self.xmlDoc:IsLoaded() then
-	    self.wndMain = Apollo.LoadForm(self.xmlDoc, "ReArmsForm", nil, self)
+	    self.wndMain = Apollo.LoadForm(self.xmlDoc, "ReArmIcon", "InWorldHudStratum", self)
 		if self.wndMain == nil then
 			Apollo.AddAddonErrorText(self, "Could not load the main window for some reason.")
 			return
 		end
 		
 	    self.wndMain:Show(false, true)
+
+	    Apollo.RegisterEventHandler("UnitCreated", "OnUnitCreated", self)	
+
+	    Print("load finished")
 
 		-- if the xmlDoc is no longer needed, you should set it to nil
 		-- self.xmlDoc = nil
@@ -94,12 +98,19 @@ function ReArms:OnReArmsOn()
 end
 
 function ReArms:OnUnitCreated(unit)
+	Print("Unit created ")
+	Print(unit:GetName())
 	-- if unit:GetType() == "Pickup" then
 		local playerName = GameLib.GetPlayerUnit():GetName();
 		-- if not string.find(unit:GetName(), playerName) then
-		if not string.find(unit:GetName(), "bot") then
+		if string.find(unit:GetName(), "bot") then
 			Print("FOUND ARM")	
-			self.wndMain:Show(true, true)
+			if self.wndMain ~= nil then
+				self.wndMain:Show(true, true)
+				self.wndMain:SetUnit(unit)
+			else
+				Print("Error with windows")
+			end
 		end
 	-- end
 end
