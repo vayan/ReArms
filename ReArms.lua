@@ -26,12 +26,11 @@ function ReArms:new(o)
     o = o or {}
     setmetatable(o, self)
     self.__index = self 
-
-    -- initialize variables here
-
-
+	self.unitArm = nil
+	
 	-- TODO : Detect local and get weapon name
-
+	self.WpnName = LocWpnName.enUS
+	
     return o
 end
 
@@ -52,9 +51,7 @@ function ReArms:OnLoad()
     -- load our form file
 	self.xmlDoc = XmlDoc.CreateFromFile("ReArms.xml")
 	self.xmlDoc:RegisterCallback("OnDocLoaded", self)
-	
-	-- Apollo.LoadSprites("ArmIcon.xml", "ArmIcon")
-		
+			
 	Apollo.CreateTimer("ReArms_BuffTimer", 0.1, true)	
 	
 end
@@ -73,16 +70,8 @@ function ReArms:OnDocLoaded()
 		
 	    self.wndMain:Show(false, true)
 
-	    Apollo.RegisterEventHandler("UnitCreated", "OnUnitCreated", self)	
-
-	    Print("load finished")
-
-		-- if the xmlDoc is no longer needed, you should set it to nil
-		-- self.xmlDoc = nil
-		
-		-- Register handlers for events, slash commands and timer, etc.
-		-- e.g. Apollo.RegisterEventHandler("KeyDown", "OnKeyDown", self)
-		-- Apollo.RegisterSlashCommand("ra", "OnReArmsOn", self)
+	    Apollo.RegisterEventHandler("UnitCreated", "OnUnitCreated", self)
+		Apollo.RegisterEventHandler("UnitDestroyed", "OnUnitDestroyed", self)
 
 	end
 end
@@ -98,21 +87,24 @@ function ReArms:OnReArmsOn()
 end
 
 function ReArms:OnUnitCreated(unit)
-	Print("Unit created ")
-	Print(unit:GetName())
-	-- if unit:GetType() == "Pickup" then
+	if unit:GetType() == "Pickup" then
 		local playerName = GameLib.GetPlayerUnit():GetName();
-		-- if not string.find(unit:GetName(), playerName) then
-		if string.find(unit:GetName(), "bot") then
-			Print("FOUND ARM")	
+		if string.match(unit:GetName(), self.WpnName) == playerName then
 			if self.wndMain ~= nil then
 				self.wndMain:Show(true, true)
 				self.wndMain:SetUnit(unit)
+				self.unitArm = unit
 			else
-				Print("Error with windows")
+				Apollo.AddAddonErrorText(self, "Problem with the window init")
 			end
 		end
-	-- end
+	end
+end
+
+function  ReArms:OnUnitDestroyed(unit)
+	if unit == self.unitArm then 
+		self.wndMain:Show(false, true)
+	end
 end
 
 -----------------------------------------------------------------------------------------------
