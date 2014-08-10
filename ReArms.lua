@@ -19,6 +19,17 @@ local LocWpnName = {
 	frFR = "Arme de (%S+)",
 }
 
+local function GetLocaleWpnName()
+	local s = Apollo.GetString(1)
+	
+	if s == "Annuler" then
+		return LocWpnName.frFR
+	elseif s == "Abbrechen" then
+		return LocWpnName.deDE
+	end
+	return LocWpnName.enUS
+end
+
 ---------------------------------------------------------------------------------------------
 -- Initialization
 -----------------------------------------------------------------------------------------------
@@ -28,11 +39,12 @@ function ReArms:new(o)
     self.__index = self 
 	self.unitArm = nil
 	
-	-- TODO : Detect local and get weapon name
-	self.WpnName = LocWpnName.enUS
+	self.WpnName = GetLocaleWpnName()
 	
     return o
 end
+
+
 
 function ReArms:Init()
 	local bHasConfigureFunction = false
@@ -69,10 +81,8 @@ function ReArms:OnDocLoaded()
 		end
 		
 	    self.wndMain:Show(false, true)
-
-	    Apollo.RegisterEventHandler("UnitCreated", "OnUnitCreated", self)
-		Apollo.RegisterEventHandler("UnitDestroyed", "OnUnitDestroyed", self)
-
+		Apollo.RegisterEventHandler("UnitEnteredCombat", "onCombatEvent", self);
+			
 	end
 end
 
@@ -86,9 +96,20 @@ function ReArms:OnReArmsOn()
 	self.wndMain:Invoke() -- show the window
 end
 
+function ReArms:onCombatEvent(unit, fighting)
+	if unit ~= GameLib:GetPlayerUnit() then return end
+	if fighting then
+		Apollo.RegisterEventHandler("UnitCreated", "OnUnitCreated", self)
+		Apollo.RegisterEventHandler("UnitDestroyed", "OnUnitDestroyed", self)
+	elseif not fighting then
+		Apollo.RemoveEventHandler("UnitCreated", self)
+		Apollo.RemoveEventHandler("UnitDestroyed", self)
+	end
+end
+
 function ReArms:OnUnitCreated(unit)
 	if unit:GetType() == "Pickup" then
-		local playerName = GameLib.GetPlayerUnit():GetName();
+		local playerName = GameLib:GetPlayerUnit():GetName();
 		if string.match(unit:GetName(), self.WpnName) == playerName then
 			if self.wndMain ~= nil then
 				self.wndMain:Show(true, true)
